@@ -12,8 +12,7 @@ $password = $_POST["password"];
 
 if (empty($username) ||empty($password)){
 	$arr = array(
-			'username' => $username,
-			'password' => $password
+		'username' => $username
 	);
 	Response::json(Response::$CODE_ERRO,'用户名或密码为空', $arr);
 }
@@ -27,8 +26,7 @@ if($result == ChatAccount::$CODE_OK){
 	Response::json(Response::$CODE_OK,'注册成功', $arr);
 }else if($result == ChatAccount::$CODE_ALREADY_EXISTS){
 	$arr = array(
-			'username' => $username,
-			'password' => $password
+		'username' => $username
 	);
 	Response::json(Response::$CODE_ERRO,'用户名被占用', $arr);
 }
