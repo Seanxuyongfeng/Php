@@ -70,44 +70,10 @@ class CookieTable{
 		$conn = null;
 		return self::$CODE_OK;
 	}
-	
-	public static function userExists($username, $password){
-		global $dsn,$user,$pass,$tablename_cookie;
-
-		try{
-			$conn = new PDO($dsn, $user, $pass);
-			$conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
-			$sqlCheck = "select * from $tablename_cookie where username='$username'";
-			$result = $conn->query($sqlCheck);
-			$rows = $result->fetchAll();
-			$rowCount = count($rows);
-			if($rowCount > 0){
-				$sqlCheck = "select * from $tablename_cookie where username='$username' and password='$password'";
-				$result = $conn->query($sqlCheck);
-				$rows = $result->fetchAll();
-				$rowCount = count($rows);
-				if($rowCount > 0){
-					$conn = null;
-					return self::$CODE_OK;
-				}else{
-					$conn = null;
-					return self::$CODE_ERROR_PWD;
-				}
-
-			}else{
-				return self::$CODE_NO_USER;
-			}
-		}catch(PDOException $e){
-			echo $sqlInsert . "<br>" . $e->getMessage();
-		}
-		$conn = null;
-		return self::$CODE_NO_USER;
-	}
 
 	public static function query($username){
 		global $dsn,$user,$pass,$tablename_cookie;
-		$sql = "select * from $tablename_cookie where name='$username'";
+		$sql = "select * from $tablename_cookie where username='$username'";
 		$alluser = array();
 		try{
 			$conn = new PDO($dsn, $user, $pass);
@@ -118,10 +84,6 @@ class CookieTable{
 				array_push($alluser, "token", $row['token']);
 				array_push($alluser, "expiretime", $row['expiretime']);
 				array_push($alluser, "userid", $row['userid']);
-				DebugUtils::i(Account::$TAG, 'username '.$row['username']);
-				DebugUtils::i(Account::$TAG, "token ".$row['token']);
-				DebugUtils::i(Account::$TAG, "expiretime ".$row['expiretime']);
-				DebugUtils::i(Account::$TAG, "userid ".$row['userid']);
 			}
 		}catch(PDOException $e){
 			echo $sql . "<br>" . $e->getMessage();

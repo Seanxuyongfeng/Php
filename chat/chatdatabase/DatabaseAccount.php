@@ -105,7 +105,7 @@ class ChatAccount{
 
 	public static function query($username){
 		global $dsn,$user,$pass,$tablename_user;
-		$sql = "select * from $tablename_user where name='$username'";
+		$sql = "select * from $tablename_user where username='$username'";
 		$alluser = array();
 		try{
 			$conn = new PDO($dsn, $user, $pass);
