@@ -1,4 +1,5 @@
-﻿ <?php     
+﻿ <?php
+    require_once __DIR__ . '/Session.php';
     set_time_limit(0);     
 
     $address='127.0.0.1';     
@@ -29,7 +30,9 @@
     $clients = array($sock);
     $write = array();
     $except = array();
+    $sessions = array();
     var_dump($clients);
+
     while(true){
         // create a copy, so $clients doesn't get modified by socket_select()
         $read = $clients;
@@ -45,18 +48,11 @@
         if (in_array($sock, $read)) {
             // accept the client, and add him to the $clients array
             $clients[] = $newsock = socket_accept($sock);
-             echo "New client connected $newsock \n";
-            $arr = array('username' => "sean", 'token' => "adbsdfsk23kd",'msg' => "aaaaa");
+            echo "New client connected $newsock \n";
+            $newsession = new Session($newsock);
+            $sessions[] = $newsession;
+            $newsession->onConncted();
 
-            $msg = json_encode($arr);
-            
-            $sent = socket_write($newsock, $msg, strlen($msg));
-            if ($sent === false) {
-                $errorcode = socket_last_error();
-                echo "errorcode $errorcode\n";
-                echo "socket_read() failed: reason: " . socket_strerror(socket_last_error($errorcode)) . "\n";
-                break;
-            }
             // remove the listening socket from the clients-with-data array
             $key = array_search($sock, $read);
             unset($read[$key]);
@@ -64,76 +60,37 @@
         }
 
         // loop through all the clients that have data to read from
+        
         foreach ($read as $read_sock) {
             echo "foreach read_sock.\n";
-            // read until newline or 1024 bytes
-            // socket_read while show errors when the client is disconnected, so silence the error messages
-            $data = socket_read($read_sock, 1024);
-            
-            // check if the client is disconnected
-            if ($data === false) {
-                echo "data is false.\n";
-                // remove client for $clients array
-                $key = array_search($read_sock, $clients);
-                unset($clients[$key]);
-                echo "client disconnected $read_sock.\n";
-                // continue to the next client to read from, if any
-                continue;
-            }
-            
-            // trim off the trailing/beginning white spaces
-            $data = trim($data);
-            echo "data $data\n";
-            // check if there is any data after trimming off the spaces
-            if (!empty($data)) {
-                // send this to all the clients in the $clients array 
-                //(except the first one, which is a listening socket)
-                echo "read client ", $data, $read_sock, "\n";
-                socket_write($read_sock, $data."\n");
-                
+            for ($i= 0;$i< count($sessions); $i++){
+               $session = $sessions[$i];
+               if($session){
+                   if($session->getSocket() == $read_sock){
+                       echo "read client $read_sock \n";
+                       $result = $session->onRead();
+                       if($result == false){
+                           $key = array_search($session, $sessions);
+                           if($key !== false){
+                               echo "remove client ";
+                               echo $session->getSocket();
+                               echo " \n";
+                               unset($sessions[$key]);
+
+                               // remove client for $clients array
+                               $key1 = array_search($read_sock, $clients);
+                               unset($clients[$key1]);
+                               echo "client disconnected $read_sock.\n";
+                               // continue to the next client to read from, if any
+                               continue;
+                           }
+                       }
+                   }
+               }
             }
         }
+        
     }
 
     socket_close($sock);
-    
-    /*
-    do {
-        
-        if (($connection = socket_accept($sock)) < 0){
-            echo "socket_accept() failed: reason: " . socket_strerror($connection) . "/n";   
-            echo "The Server is Stop....\n";
-            break;     
-        }
-
-        do{
-            if (false === ($buf = socket_read($connection, 8192))) {
-                $errorcode = socket_last_error();
-                echo "errorcode $errorcode\n";
-                echo "socket_read() failed: reason: " . socket_strerror(socket_last_error($errorcode)) . "\n";
-                break;
-            }
-
-            echo "recv client ", $buf, "\n";
-
-            $arr = array('username' => "sean", 'token' => "adbsdfsk23kd",'msg' => $buf);
-
-            $msg = json_encode($arr);
-            
-            $sent = socket_write($connection, $msg, strlen($msg));
-            if ($sent === false) {
-                $errorcode = socket_last_error();
-                echo "errorcode $errorcode\n";
-                echo "socket_read() failed: reason: " . socket_strerror(socket_last_error($errorcode)) . "\n";
-                break;
-            }
-            sleep(5);
-        }while(true);
-     
-        socket_close($connection);
-
-    } while (true);
-
-    socket_close($sock);
-    */
 ?>    
