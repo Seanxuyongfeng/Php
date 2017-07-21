@@ -42,13 +42,12 @@
         if (socket_select($read, $write, $except, 0) < 1){
             continue;
         }
-        echo "socket_select triggered\n";
+        echo "socket_select triggered.\n";
         //var_dump($read);
         // check if there is a new client trying to connect
         if (in_array($sock, $read)) {
             // accept the client, and add him to the $clients array
             $clients[] = $newsock = socket_accept($sock);
-            echo "New client connected $newsock \n";
             $newsession = new Session($newsock);
             $sessions[] = $newsession;
             $newsession->onConncted();
@@ -62,13 +61,11 @@
         // loop through all the clients that have data to read from
         
         foreach ($read as $read_sock) {
-            echo "foreach read_sock.\n";
             for ($i= 0;$i< count($sessions); $i++){
                $session = $sessions[$i];
                if($session){
                    if($session->getSocket() == $read_sock){
-                       echo "read client $read_sock \n";
-                       $result = $session->onRead();
+                       $result = $session->onRead($sessions);
                        if($result == false){
                            $key = array_search($session, $sessions);
                            if($key !== false){
