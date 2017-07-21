@@ -35,6 +35,8 @@ class CookieTable{
 		$result = self::addCookieImpl($name, $token, $expiretime, $userid);
 		if($result === self::$CODE_OK){
 			$arr = array(
+					'result'=>Response::$CODE_OK,
+					'desc'=>'注册成功',
 					'username' => $name,
 					'userid' => $userid,
 					'token' => $token,
@@ -80,6 +82,8 @@ class CookieTable{
 			$conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 			$result = $conn->query($sql);
 			while($row = $result->fetch()){
+				array_push($alluser, "result", Response::$CODE_OK);
+				array_push($alluser, "desc", '登录成功');
 				array_push($alluser, 'username', $row['username']);
 				array_push($alluser, "token", $row['token']);
 				array_push($alluser, "expiretime", $row['expiretime']);

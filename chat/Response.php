@@ -8,7 +8,7 @@ class Response{
 	* desc 返回的提示信息
 	* $data 返回的信息
 	*/
-	public static function json($code, $message='', $data = array()){
+	public static function json2($code, $message='', $data = array()){
 		if(!is_numeric($code)){
 			return '';
 		}
@@ -20,6 +20,11 @@ class Response{
 		);
 		
 		echo json_encode($result,JSON_UNESCAPED_UNICODE);
+		exit;
+	}
+	
+	public static function json($data){
+		echo json_encode($data,JSON_UNESCAPED_UNICODE);
 		exit;
 	}
 }

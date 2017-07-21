@@ -61,8 +61,8 @@
         // loop through all the clients that have data to read from
         
         foreach ($read as $read_sock) {
-            for ($i= 0;$i< count($sessions); $i++){
-               $session = $sessions[$i];
+            echo "size " . count($sessions) . "\n";
+            foreach ($sessions as $session){
                if($session){
                    if($session->getSocket() == $read_sock){
                        $result = $session->onRead($sessions);

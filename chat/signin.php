@@ -15,18 +15,21 @@ $result = ChatAccount::userExists($username, $password);
 error_log("user register $result", 0);
 if($result == ChatAccount::$CODE_OK){
 	$arr = CookieTable::query($username);
-	Response::json(Response::$CODE_OK,'登录成功', $arr);
+	Response::json($arr);
 }else if($result == ChatAccount::$CODE_NO_USER){
 	$arr = array(
-			'username' => $username,
-			'password' => $password
+			'result'=>Response::$CODE_USER_NOT_EXITS,
+			'desc'=>'用户不存在',
+			'username'=>$username
 	);
-	Response::json(Response::$CODE_USER_NOT_EXITS,'用户不存在', $arr);
+	Response::json($arr);
 }else if($result == ChatAccount::$CODE_ERROR_PWD){
 	$arr = array(
-			'username' => $username,
+			'result'=>Response::$CODE_ERRO,
+			'desc'=>'密码错误',
+			'username'=>$username
 	);
-	Response::json(Response::$CODE_ERRO,'密码错误', $arr);	
+	Response::json($arr);	
 }
 
 ?>
