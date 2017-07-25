@@ -1,5 +1,4 @@
 <?php
-
 class Session{
     
     private $socket;
@@ -19,32 +18,38 @@ class Session{
     public function getUserid(){
         return $this->userid;
     }
-
+    
     public function onConncted(){
        echo "New client connected " . $this->socket . "\n";
     }
-
+    
     public function onRead($sessions){
         // read until newline or 1024 bytes
         // socket_read while show errors when the client is disconnected, so silence the error messages
         $data = socket_read($this->socket, 1024);
         // check if the client is disconnected
         if ($data === false) {
-            //socket_close($this->socket);
+            echo "socket_read failed: reason: " . socket_strerror(socket_last_error($this->socket)) . "\n";
             return false;;
         }
-
         // trim off the trailing/beginning white spaces
         $data = trim($data);
+        if (empty($data)) {
+            return false;
+        }
+        echo "data " . $data . "\n";
         $action = $this->getAction($data);
         $this->handle($sessions,$action,$data);
         return true;
     }
 
     public function response($msg){
-        socket_write($this->socket, $msg);
+        $sent = socket_write($this->socket, $msg);
+        if($sent === false){
+            echo "socket_write failed: reason: " . socket_strerror(socket_last_error($this->socket)) . "\n";
+        }
     }
-    
+
     private function findTargetSession($sessions, $targetuser){
         for ($i= 0; $i< count($sessions); $i++){
             $session = $sessions[$i];

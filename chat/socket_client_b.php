@@ -29,25 +29,24 @@
     socket_write($socket, $in, strlen($in));
     sleep(4);
     do{
-        echo "write....\n";
-        $msg = array('userid' => 'client_b', 'token' => '123456789', 'action' => 'send', 'targetuser'=>'client_a', 'msg' => 'I am client_b');
+        fwrite(STDOUT,"client_b:");
+        $input_msg = trim(fgets(STDIN));
+        $msg = array('userid' => 'client_b', 'token' => '123456789', 'action' => 'send', 'targetuser'=>'client_a', 'msg' => "$input_msg");
         $out = json_encode($msg);
         if(!socket_write($socket, $out, strlen($out))) {
             echo "socket_write() failed: reason: " . socket_strerror($socket) . "\n";
             break;
         }else {
-            echo "send msg to server $out\n";
         }
         $out = '';
-        echo "waiting....\n";
         while($out = socket_read($socket, 8192)) {
-            echo "client_b read from $out\n";
+            echo "reply...: $out\n";
             break;
         }
-        sleep(3);
-    }while(true);
+    }while($input_msg != 'exit');
 
     echo "Close SOCKET...\n";
     socket_close($socket);
+    echo "socket_select() failed: reason: " . socket_strerror(socket_last_error()) . "\n";
     echo "OK\n";
 ?>
