@@ -85,7 +85,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-
+        /*
         new Thread(new Runnable(){
             @Override
             public void run() {
@@ -117,7 +117,7 @@ public class MainActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
             }
-        }).start();
+        }).start();*/
     }
 
     private void login(BufferedWriter writer){
