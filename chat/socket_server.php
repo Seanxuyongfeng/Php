@@ -1,7 +1,8 @@
 ﻿<?php
+	header("Content-type: text/html;charset=utf-8");
     require_once __DIR__ . '/Session.php';
     set_time_limit(0);     
-    $address='127.0.0.1';     
+    $address='192.168.1.103';     
     $port=11109;    
     $sock = socket_create(AF_INET,SOCK_STREAM,SOL_TCP);
     if($sock == false){   

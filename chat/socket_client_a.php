@@ -6,7 +6,7 @@
     echo "<h2>TCP/IP Connection</h2>\n";
 
     $port = 11109;
-    $ip = "127.0.0.1";
+    $ip = "192.168.1.103";
 
     $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
 
@@ -24,14 +24,23 @@
         echo "Connected!!!\n";
     }
 
-    $arr = array('userid' => 'client_a', 'token' => '123456789', 'action' => 'login');
+    $arr = array('username' => 'xuyongfeng', 'password' => '123456', 'action' => 'login');
     $in = json_encode($arr);
     socket_write($socket, $in, strlen($in));
+    $logon_result = '';
+    while($logon_result = socket_read($socket, 8192)) {
+    	echo "login return: $logon_result\n";
+    	break;
+    }
+    $login_result = json_decode($logon_result, true);
+    $userid = $login_result['userid'];
+    $friends = $login_result['friends'];
+    echo "userid: " .$userid . "\n";
     sleep(3);
     do{
         fwrite(STDOUT,"client_a:");
         $input_msg = trim(fgets(STDIN));
-        $msg = array('userid' => 'client_a', 'token' => '123456789', 'action' => 'send', 'targetuser'=>'client_b', 'msg' => "$input_msg");
+        $msg = array('userid' => $userid, 'token' => '123456789', 'action' => 'send', 'targetuser'=>$friends, 'msg' => "$input_msg");
         $out = json_encode($msg);
         if(!socket_write($socket, $out, strlen($out))) {
             echo "socket_write() failed: reason: " . socket_strerror($socket) . "\n";

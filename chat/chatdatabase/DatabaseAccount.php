@@ -1,6 +1,5 @@
 <?php
 
-require_once __DIR__ . '/../DebugUtils.php';
 require_once __DIR__ . '/../Response.php';
 
 header("Content-type: text/html;charset=utf-8");
@@ -112,18 +111,37 @@ class ChatAccount{
 			$conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 			$result = $conn->query($sql);
 			while($row = $result->fetch()){
-				array_push($alluser, 'username', $row['username']);
-				array_push($alluser, "userid", $row['userid']);
-				array_push($alluser, "nickname", $row['nickname']);
-				DebugUtils::i(Account::$TAG, 'username '.$row['username']);
-				DebugUtils::i(Account::$TAG, "userid ".$row['userid']);
-				DebugUtils::i(Account::$TAG, "nickname ".$row['nickname']);
+				echo "query " .$username . "\n";
+				$alluser = array('username'=>$row['username'],"userid"=> $row['userid'],"nickname"=>$row['nickname'],"friends"=>$row['friends']);
 			}
 		}catch(PDOException $e){
 			echo $sql . "<br>" . $e->getMessage();
 		}
 		$conn = null;
 		return $alluser;
+	}
+	
+	public static function friendExits($userid, $friend_userid){
+		global $dsn,$user,$pass,$tablename_user;
+		$sql = "select * from $tablename_user where userid='$userid'";
+		try{
+			$conn = new PDO($dsn, $user, $pass);
+			$conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+			$result = $conn->query($sql);
+			while($row = $result->fetch()){
+				$friends = $row['friends'];
+				echo "friends :" . $friends . ", user:" . $userid."\n";
+				$pos = stripos($friends, $friend_userid);
+				echo "pos :".$pos . "\n";
+				if ($pos !== false){
+					return TRUE;
+				}
+			}
+		}catch(PDOException $e){
+			echo $sql . "<br>" . $e->getMessage();
+		}
+		$conn = null;
+		return FALSE;
 	}
 }
 ?>
