@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/chatdatabase/DatabaseAccount.php';
+require_once __DIR__ . '/chatdatabase/Cookie.php';
 
 class Session{
     
@@ -57,13 +58,13 @@ class Session{
     }
 
     private function findTargetSession($sessions, $targetuser){
-    	$result = ChatAccount::friendExits($this->userid, $targetuser);
-    	if($result === false){
-    		echo "not exists in databse \n";
-    		return null;
-    	}else{
-    		echo "find ".$targetuser. " in database. \n";
-    	}
+        $result = ChatAccount::friendExits($this->userid, $targetuser);
+        if($result === false){
+            echo "not exists in databse \n";
+            return null;
+        }else{
+            echo "find ".$targetuser. " in database. \n";
+        }
 
         for ($i= 0; $i< count($sessions); $i++){
             $session = $sessions[$i];
@@ -78,34 +79,107 @@ class Session{
     }
     
     private function onLogin($username,$password){
-    	$result = ChatAccount::userExists($username, $password);
-    	
-    	echo "user login ". $result ." \n";
-    	if($result == ChatAccount::$CODE_OK){
-    		$arr = ChatAccount::query($username);
-    		$this->userid = $arr['userid'];
-    		$this->username = $arr['username'];
-    		
-    		echo "login " . $this->userid . ":" . $this->username."\n";
-    		$responce = json_encode($arr,JSON_UNESCAPED_UNICODE);
-			$this->response($responce);
-    	}else if($result == ChatAccount::$CODE_NO_USER){
-    		$arr = array(
-    				'result'=>Response::$CODE_USER_NOT_EXITS,
-    				'desc'=>'用户不存在',
-    				'username'=>$username
-    		);
-    		$responce = json_encode($arr,JSON_UNESCAPED_UNICODE);
-    		$this->response($responce);
-    	}else if($result == ChatAccount::$CODE_ERROR_PWD){
-    		$arr = array(
-    				'result'=>Response::$CODE_ERRO,
-    				'desc'=>'密码错误',
-    				'username'=>$username
-    		);
-    		$responce = json_encode($arr,JSON_UNESCAPED_UNICODE);
-    		$this->response($responce);
-    	}
+        $result = ChatAccount::userExists($username, $password);
+        
+        echo "user login ". $result ." \n";
+        if($result == ChatAccount::$CODE_OK){
+            $arr = ChatAccount::query($username);
+            $this->userid = $arr['userid'];
+            $this->username = $arr['username'];
+            
+            echo "login " . $this->userid . ":" . $this->username."\n";
+            $responce = json_encode($arr,JSON_UNESCAPED_UNICODE);
+            $this->response($responce);
+        }else if($result == ChatAccount::$CODE_NO_USER){
+            $arr = array(
+                    'result'=>Response::$CODE_USER_NOT_EXITS,
+                    'desc'=>'用户不存在',
+                    'username'=>$username
+            );
+            $responce = json_encode($arr,JSON_UNESCAPED_UNICODE);
+            $this->response($responce);
+        }else if($result == ChatAccount::$CODE_ERROR_PWD){
+            $arr = array(
+                    'result'=>Response::$CODE_ERRO,
+                    'desc'=>'密码错误',
+                    'username'=>$username
+            );
+            $responce = json_encode($arr,JSON_UNESCAPED_UNICODE);
+            $this->response($responce);
+        }
+    }
+    
+    private function onQueryOnLine($sessions){
+        $users = '';
+        $count = count($sessions);
+        if($count == 1){
+            return $users;
+        }
+        echo 'query count:' . $count . '\n';
+        for ($i= 0; $i< $count; $i++){
+            $session = $sessions[$i];
+            if($session){
+                if($session->getUserid() != $this->userid){
+                    $users = $users . $session->getUserid();
+                    if($i != ($count -1)){
+                        $users = $users . ':';
+                    }
+                }
+            }
+        }
+        return $users;
+    }
+    
+    private function onSignUp($username, $password){
+        if (empty($username) ||empty($password)){
+            $arr = array(
+                    'result'=>Response::$CODE_ERRO,
+                    'desc'=>'用户名或密码为空',
+                    'username' => $username
+            );
+            $responce = json_encode($arr,JSON_UNESCAPED_UNICODE);
+            $this->response($responce);
+        }
+        
+        $result = ChatAccount::registerUser($username, $password);
+        
+        error_log("user register '$username' '$password' $result");
+        
+        if($result == ChatAccount::$CODE_OK){
+        
+            $arr = CookieTable::addCookie($username);
+            
+            $responce = json_encode($arr,JSON_UNESCAPED_UNICODE);
+            $this->response($responce);
+        }else if($result == ChatAccount::$CODE_ALREADY_EXISTS){
+            $arr = array(
+                    'result'=>Response::$CODE_ERRO,
+                    'desc'=>'用户名被占用',
+                    'username'=>$username
+            );
+            $responce = json_encode($arr,JSON_UNESCAPED_UNICODE);
+            $this->response($responce);
+        }
+    }
+    
+    private function  doAddFriend($friend_id){
+        $result = ChatAccount::checkUser($friend_id);
+        if($result == ChatAccount::$CODE_OK){
+            ChatAccount::insertFriend($friend_id);
+            $arr = array(
+                    'result'=>Response::$CODE_OK,
+                    'desc'=>'成功'
+            );
+            $responce = json_encode($arr,JSON_UNESCAPED_UNICODE);
+            $this->response($responce);
+        }else{
+            $arr = array(
+                    'result'=>Response::$CODE_ERRO,
+                    'desc'=>'用户不存在'
+            );
+            $responce = json_encode($arr,JSON_UNESCAPED_UNICODE);
+            $this->response($responce);
+        }
     }
     
     private function getAction($msg){
@@ -134,6 +208,20 @@ class Session{
             }else{
                 echo "cannot find target " . $targetuser . "\n";
             }
+        }else if($action == 'query'){
+            $users_online = $this->onQueryOnLine($sessions);
+            
+            $arr = array(
+                    'users'=>$users_online,
+            );
+            $responce = json_encode($arr,JSON_UNESCAPED_UNICODE);
+            $this->response($responce);
+        }else if($action == 'signup'){
+            $data = json_decode($msg, true);
+            $username = $data['username'];
+            $password = $data['password'];
+            $this->onSignUp($username, $password);
+        }else if($action == 'addfriend'){
             
         }
     }

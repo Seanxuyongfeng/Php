@@ -102,6 +102,49 @@ class ChatAccount{
 		return self::$CODE_NO_USER;
 	}
 
+	public static function checkUser($friend_id){
+		global $dsn,$user,$pass,$tablename_user;
+		try{
+			$conn = new PDO($dsn, $user, $pass);
+			$conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+			$sqlCheck = "select * from $tablename_user where userid='$friend_id'";
+			$result = $conn->query($sqlCheck);
+			$rows = $result->fetchAll();
+			$rowCount = count($rows);
+			if($rowCount > 0){
+				$conn = null;
+				return self::$CODE_OK;
+			}
+		}catch(PDOException $e){
+			error_log($sqlInsert . "<br>" . $e->getMessage());
+		}
+		$conn = null;
+		return self::$CODE_ERRO;
+	}
+	
+	public static function insertFriend($userid, $friend_id){
+		global $dsn,$user,$pass,$tablename_user;
+		
+		try{
+			$conn = new PDO($dsn, $user, $pass);
+			$conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+			$sqlCheck = "select * from $tablename_user where userid='$userid'";
+			$result = $conn->query($sqlCheck);
+			$friends = '';
+			while($row = $result->fetch()){
+				$friends = $row['friends'];
+			}
+			$friends = $friends. ':' . $friend_id;
+			$updateSql = "UPDATE '$tablename_user' SET friends = '$friends' WHERE userid = '$userid'";
+			$conn->exec($updateSql);
+			return self::$CODE_OK;
+		}catch(PDOException $e){
+			error_log($sqlInsert . "<br>" . $e->getMessage());
+		}
+		$conn = null;
+		return self::$CODE_ERRO;
+	}
+	
 	public static function query($username){
 		global $dsn,$user,$pass,$tablename_user;
 		$sql = "select * from $tablename_user where username='$username'";
