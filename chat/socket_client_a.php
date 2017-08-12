@@ -24,19 +24,62 @@
         echo "Connected!!!\n";
     }
 
-    $arr = array('username' => 'xuyongfeng', 'password' => '123456', 'action' => 'login');
+    /*register
+    $arr = array('username' => '22222', 'password' => '123456', 'action' => 'signup');
     $in = json_encode($arr);
     socket_write($socket, $in, strlen($in));
     $logon_result = '';
     while($logon_result = socket_read($socket, 8192)) {
-    	echo "login return: $logon_result\n";
+    	echo "signup return: $logon_result\n";
+    	break;
+    }
+    
+    while(TRUE){
+    	sleep(5);
+    };*/
+    
+    $arr = array('username' => '22222', 'password' => '123456', 'action' => 'login');
+    $in = json_encode($arr);
+    socket_write($socket, $in, strlen($in));
+    $logon_result = '';
+    while($logon_result = socket_read($socket, 8192)) {
+    	echo "login return: $logon_result \n";
     	break;
     }
     $login_result = json_decode($logon_result, true);
     $userid = $login_result['userid'];
     $friends = $login_result['friends'];
     echo "userid: " .$userid . "\n";
-    sleep(3);
+    $arr = array('userid' => $userid, 'password' => '123456', 'action' => 'query');
+    $in = json_encode($arr);
+    socket_write($socket, $in, strlen($in));
+    $logon_result = '';
+    $friends = '';
+    while($logon_result = socket_read($socket, 8192)) {
+    	echo "query return: $logon_result\n";
+    	$data = json_decode($logon_result, true);
+    	$friends = $data['users'];
+    	break;
+    }
+ 
+    	sleep(5);
+
+    
+    //add friends
+    $arrmy = explode(':', $friends);
+    $arr = array('userid' => $userid, 'password' => '123456', 'action' => 'addfriend', 'friend_id' => $arrmy[0]);
+    $in = json_encode($arr);
+    socket_write($socket, $in, strlen($in));
+    $logon_result = '';
+    while($logon_result = socket_read($socket, 8192)) {
+    	echo "add friends return: $logon_result\n";
+    	break;
+    }
+    
+    while(TRUE){
+    	sleep(6);
+    }
+    
     do{
         fwrite(STDOUT,"client_a:");
         $input_msg = trim(fgets(STDIN));

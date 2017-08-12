@@ -162,24 +162,25 @@ class Session{
         }
     }
     
-    private function  doAddFriend($friend_id){
-        $result = ChatAccount::checkUser($friend_id);
-        if($result == ChatAccount::$CODE_OK){
-            ChatAccount::insertFriend($friend_id);
-            $arr = array(
-                    'result'=>Response::$CODE_OK,
-                    'desc'=>'成功'
-            );
-            $responce = json_encode($arr,JSON_UNESCAPED_UNICODE);
-            $this->response($responce);
-        }else{
-            $arr = array(
-                    'result'=>Response::$CODE_ERRO,
-                    'desc'=>'用户不存在'
-            );
-            $responce = json_encode($arr,JSON_UNESCAPED_UNICODE);
-            $this->response($responce);
-        }
+    private function doAddFriend($friend_id){
+    	echo "doAddFriend " .$friend_id . "\n";
+    	$result = ChatAccount::checkUser($friend_id);
+    	if($result == ChatAccount::$CODE_OK){
+    		ChatAccount::insertFriend($this->userid, $friend_id);
+    		$arr = array(
+    				'result'=>Response::$CODE_OK,
+    				'desc'=>'成功'
+    		);
+    		$responce = json_encode($arr,JSON_UNESCAPED_UNICODE);
+    		$this->response($responce);
+    	}else{
+    		$arr = array(
+    				'result'=>Response::$CODE_ERRO,
+    				'desc'=>'用户不存在'
+    		);
+    		$responce = json_encode($arr,JSON_UNESCAPED_UNICODE);
+    		$this->response($responce);
+    	}
     }
     
     private function getAction($msg){
@@ -188,6 +189,7 @@ class Session{
     }
     
     private function handle($sessions, $action, $msg){
+    	echo 'handle ' . $action . '\n';
         if($action == 'login'){
             echo "action login \n";
             $data = json_decode($msg, true);
@@ -222,7 +224,10 @@ class Session{
             $password = $data['password'];
             $this->onSignUp($username, $password);
         }else if($action == 'addfriend'){
-            
+        	$data = json_decode($msg, true);
+        	$friend_id = $data['friend_id'];
+        	echo 'add friends ' . $friend_id . '\n';
+        	$this->doAddFriend($friend_id);
         }
     }
     

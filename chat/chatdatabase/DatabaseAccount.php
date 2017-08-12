@@ -124,7 +124,7 @@ class ChatAccount{
 	
 	public static function insertFriend($userid, $friend_id){
 		global $dsn,$user,$pass,$tablename_user;
-		
+		$friends = '';
 		try{
 			$conn = new PDO($dsn, $user, $pass);
 			$conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -135,13 +135,25 @@ class ChatAccount{
 				$friends = $row['friends'];
 			}
 			$friends = $friends. ':' . $friend_id;
-			$updateSql = "UPDATE '$tablename_user' SET friends = '$friends' WHERE userid = '$userid'";
+		}catch(PDOException $e){
+			error_log($e->getMessage());
+			return self::$CODE_ERRO;
+		}
+		$conn = null;
+		
+		try{
+			$conn = new PDO($dsn, $user, $pass);
+			$conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+			$updateSql = "update $tablename_user set friends = '$friends' where userid = '$userid'";
+			echo "insertFriend " . $updateSql . "\n";
 			$conn->exec($updateSql);
 			return self::$CODE_OK;
 		}catch(PDOException $e){
-			error_log($sqlInsert . "<br>" . $e->getMessage());
+			error_log($e->getMessage());
 		}
 		$conn = null;
+		
+		
 		return self::$CODE_ERRO;
 	}
 	
