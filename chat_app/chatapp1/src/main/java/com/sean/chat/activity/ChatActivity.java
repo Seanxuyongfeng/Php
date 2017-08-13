@@ -1,6 +1,5 @@
 package com.sean.chat.activity;
 
-import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
@@ -21,7 +20,9 @@ import com.sean.chat.view.TitleBarView;
 
 import org.json.JSONObject;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import sean.com.chatapp1.R;
@@ -48,6 +49,10 @@ public class ChatActivity extends AppCompatActivity {
                     ChatEntity chatMessage = new ChatEntity();
                     chatMessage.setMessageType(ChatEntity.RECEIVE);
                     chatMessage.setContent(istring);
+                    Date date = new Date();
+                    SimpleDateFormat sdf = new SimpleDateFormat("MM-dd hh:mm:ss");
+                    String sendTime = sdf.format(date);
+                    chatMessage.setSendTime(sendTime);
                     mChatList.add(chatMessage);
                     mMessageAdapter.notifyDataSetChanged();
                     mListView.setSelection(mChatList.size());
@@ -90,6 +95,10 @@ public class ChatActivity extends AppCompatActivity {
                 ChatEntity chatMessage = new ChatEntity();
                 chatMessage.setMessageType(ChatEntity.SEND);
                 chatMessage.setContent(content);
+                Date date = new Date();
+                SimpleDateFormat sdf = new SimpleDateFormat("MM-dd hh:mm:ss");
+                String sendTime = sdf.format(date);
+                chatMessage.setSendTime(sendTime);
                 mChatList.add(chatMessage);
                 mMessageAdapter.notifyDataSetChanged();
                 mListView.setSelection(mChatList.size());
@@ -107,6 +116,7 @@ public class ChatActivity extends AppCompatActivity {
 
                 MessageSender sender = MessageSender.getInstance();
                 sender.send(jsonObject);
+                inputEdit.setText("");
             }
         });
     }

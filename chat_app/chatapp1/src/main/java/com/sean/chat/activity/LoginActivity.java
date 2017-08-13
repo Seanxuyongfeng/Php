@@ -2,6 +2,8 @@ package com.sean.chat.activity;
 
 import android.content.Intent;
 import android.os.AsyncTask;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -13,6 +15,7 @@ import com.sean.chat.MasterUser;
 import com.sean.chat.MessageReader;
 import com.sean.chat.MessageSender;
 import com.sean.chat.net.Connection;
+import com.sean.chat.util.DebugUtil;
 
 import org.json.JSONObject;
 
@@ -22,7 +25,37 @@ public class LoginActivity extends AppCompatActivity {
     private Button mLoginButton;
     private Button mRegisterButton;
     private EditText mUsername;
-    private EditText mPassword;;
+    private EditText mPassword;
+
+    private Handler mHandler = new Handler(){
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what){
+                case MessageReader.MSG_ID_FROM_SERVER:
+                    Bundle data = msg.getData();
+                    if(data != null){
+                        String result = data.getString("msg");
+                        Toast.makeText(LoginActivity.this, result, Toast.LENGTH_SHORT).show();
+                        DebugUtil.i("login", result);
+                        try{
+                            JSONObject obj = new JSONObject(result);
+                            if(obj.has("userid")){
+                                MasterUser master = MasterUser.getInstanace();
+                                master.userid = obj.getString("userid");
+                                Intent intent = new Intent();
+                                intent.setClass(LoginActivity.this, ChatActivity.class);
+                                startActivity(intent);
+                            }
+                        }catch (Throwable e){
+                            e.printStackTrace();
+                        }
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+    };
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -70,15 +103,18 @@ public class LoginActivity extends AppCompatActivity {
                     reader.init(connection.getSocket());
                     MessageSender sender = MessageSender.getInstance();
                     sender.init(connection.getSocket());
-                    doLogin(username, password);
+                    MasterUser masterUser = MasterUser.getInstanace();
+                    masterUser.init(reader, sender);
+                    masterUser.setHandler(mHandler);
+                    masterUser.login(username, password);
                     return null;
                 }
 
                 @Override
                 protected void onPostExecute(Integer integer) {
-                    Intent intent = new Intent();
-                    intent.setClass(LoginActivity.this, ChatActivity.class);
-                    startActivity(intent);
+                    //Intent intent = new Intent();
+                    //intent.setClass(LoginActivity.this, ChatActivity.class);
+                    // startActivity(intent);
                 }
             }.execute();
 
@@ -87,16 +123,4 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
-    private void doLogin(String username, String password){
-        JSONObject jsonObject = new JSONObject();
-        try {
-            jsonObject.put("userid", username);
-            jsonObject.put("token", "123456789");
-            jsonObject.put("action", "login");
-            MessageSender sender = MessageSender.getInstance();
-            sender.send(jsonObject);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 }
