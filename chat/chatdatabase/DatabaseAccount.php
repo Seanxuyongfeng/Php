@@ -134,7 +134,11 @@ class ChatAccount{
 			while($row = $result->fetch()){
 				$friends = $row['friends'];
 			}
-			$friends = $friends. ':' . $friend_id;
+			if (empty($friends)){
+				$friends = $friend_id;
+			}else{
+				$friends .= (':' . $friends);
+			}
 		}catch(PDOException $e){
 			error_log($e->getMessage());
 			return self::$CODE_ERRO;

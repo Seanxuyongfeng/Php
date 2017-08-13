@@ -20,6 +20,7 @@ import com.sean.chat.util.DebugUtil;
 import org.json.JSONObject;
 
 import sean.com.chatapp1.R;
+import sean.com.chatapp1.TestActivity;
 
 public class LoginActivity extends AppCompatActivity {
     private Button mLoginButton;
@@ -56,6 +57,28 @@ public class LoginActivity extends AppCompatActivity {
             }
         }
     };
+
+    private MasterUser.Callback mCallback = new MasterUser.Callback() {
+        @Override
+        public void onResult(String result) {
+            try{
+                JSONObject obj = new JSONObject(result);
+                if(obj.has("userid")){
+                    MasterUser master = MasterUser.getInstanace();
+                    master.userid = obj.getString("userid");
+                    if(obj.has("friends")){
+                        master.friends = obj.getString("friends");
+                    }
+                    Intent intent = new Intent();
+                    intent.setClass(LoginActivity.this, TestActivity.class);
+                    startActivity(intent);
+                }
+            }catch (Throwable e){
+                e.printStackTrace();
+            }
+        }
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -105,8 +128,7 @@ public class LoginActivity extends AppCompatActivity {
                     sender.init(connection.getSocket());
                     MasterUser masterUser = MasterUser.getInstanace();
                     masterUser.init(reader, sender);
-                    masterUser.setHandler(mHandler);
-                    masterUser.login(username, password);
+                    masterUser.login(username, password, mCallback);
                     return null;
                 }
 

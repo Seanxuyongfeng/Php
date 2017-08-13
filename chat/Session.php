@@ -169,6 +169,7 @@ class Session{
     		ChatAccount::insertFriend($this->userid, $friend_id);
     		$arr = array(
     				'result'=>Response::$CODE_OK,
+    				'friend_id'=>$friend_id,
     				'desc'=>'成功'
     		);
     		$responce = json_encode($arr,JSON_UNESCAPED_UNICODE);

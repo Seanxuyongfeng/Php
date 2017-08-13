@@ -39,6 +39,14 @@
     echo "userid: " .$userid . "\n";
     
     sleep(4);
+    
+    while(TRUE){
+	    while($logon_result = socket_read($socket, 8192)) {
+	    	echo "READ : $logon_result\n";
+	    	break;
+	    }
+    }
+    sleep(4);
     do{
         fwrite(STDOUT,"client_b:");
         $input_msg = trim(fgets(STDIN));

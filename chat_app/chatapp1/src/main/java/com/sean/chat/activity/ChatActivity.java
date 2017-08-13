@@ -1,5 +1,6 @@
 package com.sean.chat.activity;
 
+import android.content.Intent;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
@@ -14,6 +15,7 @@ import android.widget.ListView;
 import com.sean.chat.MasterUser;
 import com.sean.chat.MessageReader;
 import com.sean.chat.MessageSender;
+
 import com.sean.chat.adapter.ChatEntity;
 import com.sean.chat.adapter.ChatMessageAdapter;
 import com.sean.chat.view.TitleBarView;
@@ -28,7 +30,6 @@ import java.util.List;
 import sean.com.chatapp1.R;
 
 public class ChatActivity extends AppCompatActivity {
-
     private String mFriendName = "张三";
     private TitleBarView mTitleBarView;
     private ListView mListView;
@@ -36,7 +37,7 @@ public class ChatActivity extends AppCompatActivity {
     private ImageButton emotionButton;
     private EditText inputEdit;
     private ChatMessageAdapter mMessageAdapter;
-
+    private String mTargetUser;
     private List<ChatEntity> mChatList = new ArrayList<ChatEntity>();
 
     private Handler mHandler = new Handler(){
@@ -69,6 +70,8 @@ public class ChatActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.activity_chat);
+        Intent intent = getIntent();
+        mTargetUser = intent.getStringExtra("userid");
         initView();
         initEvent();
         MessageReader reader = MessageReader.getInstance();
@@ -105,10 +108,9 @@ public class ChatActivity extends AppCompatActivity {
                 MasterUser masterUser = MasterUser.getInstanace();
                 JSONObject jsonObject = new JSONObject();
                 try {
-                    jsonObject.put("userid", masterUser.username);
-                    jsonObject.put("token", "123456789");
+                    jsonObject.put("userid", masterUser.userid);
                     jsonObject.put("action", "send");
-                    jsonObject.put("targetuser", "client_b");
+                    jsonObject.put("targetuser", mTargetUser);
                     jsonObject.put("msg", content);
                 } catch (Exception e) {
                     e.printStackTrace();
